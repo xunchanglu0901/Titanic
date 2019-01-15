@@ -68,6 +68,9 @@ for label in labels:
     train_df[new_label] = label_encode.fit_transform(train_df[label])
 original_feature = ['PassengerId','Pclass','Sex','Age','SibSp','Parch','Fare','Embarked']
 new_feature = ['Title','FamilySize','IsAlone','Sex_Code','Embarked_Code','AgeBin_Code','FareBin_Code']
+'''
+上述操作完成了，字符串变量到数字型(离散、连续)变量的转化，从而便于应用于后续模型的拟合
+'''
 #载入seaborn包并以sns简化命名，当你使用数据科学中的Python时，你很有可能已经用了Matplotlib,一个供你创建高质量图像的2D库。
 #另一个免费的可视化库就是Seaborn,他提供了一个绘制统计图形的高级接口。Seaborn是比Matplotlib更高级的免费库，特别地以数据可视化为目标，
 #Matplotlib试着让简单的事情更加简单，困难的事情变得可能，而Seaborn就是让困难的东西更加简单。
