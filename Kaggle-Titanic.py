@@ -200,10 +200,105 @@ x2Train, x2Test, y2Train, y2Test = train_test_split(all_x_2, y, test_size = 0.2,
 #pip install Pillow
 from PIL import Image
 '''
+#method one
 img=Image.open('models.png')
 img.show()
-'''
+#method two
 img=Image.open('models.png')
 plt.figure('models')
 plt.imshow(img)
 plt.show()
+'''
+
+
+
+###### 第四堂课 ######
+
+#从sklearn中调用逻辑回归、决策树，随机森林包
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+#初始化模型，分别存入logr,dtree,rf变量中，并将变量置于名为models的列表中
+logr = LogisticRegression()
+dtree = DecisionTreeClassifier()
+rf = RandomForestClassifier()
+models = [logr,dtree,rf]
+#这个函数调用逻辑回归模型来学习训练集和测试集
+logr.fit(xTrain,yTrain)
+#根据自变量xTest,xTrain分别利用训练好的模型预测出因变量
+y_pred_test = logr.predict(xTest)
+y_pred_train = logr.predict(xTrain)
+#算出测试集精确度（求均值）
+np.mean(y_pred_test == yTest)
+#算出训练集精确度
+np.mean(y_pred_train == yTrain)
+#对每一个模型，分别测试训练集和测试集的精确度
+for model in models:
+    print ('\nThe current model is', model)
+    model.fit(xTrain, yTrain)
+    print ('\nTraining accuracy is',np.mean(model.predict(xTrain) == yTrain))
+    print ('\nTesting accuracy is',np.mean(model.predict(xTest) == yTest))
+#对第二组数据进行相同的操作，每一个模型，分别测试训练集和测试集的精确度
+for model in models:
+    print ('\nThe current model is', model)
+    model.fit(x2Train, y2Train)
+    print ('\nTraining accuracy is',np.mean(model.predict(x2Train) == y2Train))
+    print ('\nTesting accuracy is',np.mean(model.predict(x2Test) == y2Test))
+
+#交叉验证是机器学习领域常用的验证模型是否优秀的方法；简而言之就是把数据切分成几个部分然后在训练集和测试集中交换使用
+#比如这次在训练集中用到的数据，下一次会放进测试集来使用，因此被称为 交叉
+#简单的交叉验证会直接按百分比来划分训练集和测试集，更难一些的方法是K-Fold，我们会使用这个方法来进行交叉验证
+#K-Fold其实就是把数据集切成K份，将每一份儿小数据集分别做一次验证集，每次剩下的K-1组份儿数据作为训练集，得到K个模型
+#
+#从sklearn中调用k次交叉验证包
+from sklearn.model_selection import KFold
+
+
+# 定义k次交叉验证函数
+def CVKFold(k, X, y, Model):
+    # Random seed: reproducibility
+    np.random.seed(1)
+
+    # accuracy score
+    train_accuracy = [0 for i in range(k)]
+    test_accuracy = [0 for i in range(k)]
+
+    # index
+    idx = 0
+
+    # CV loop
+    kf = KFold(n_splits=k, shuffle=True)
+
+    # Generate the sets
+    for train_index, test_index in kf.split(X):
+        # Iteration number
+        # print(train_index,len(train_index))
+        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+        # Calling the function/model
+
+        if Model == "Logit":
+            clf = LogisticRegression(random_state=0)
+
+        if Model == "RForest":
+            clf = RandomForestClassifier(random_state=0)
+
+        # Fit the model
+        clf = clf.fit(X_train, y_train)
+        y_train_pred = clf.predict(X_train)
+        y_test_pred = clf.predict(X_test)
+
+        train_accuracy[idx] = np.mean(y_train_pred == y_train)
+        test_accuracy[idx] = np.mean(y_test_pred == y_test)
+        idx += 1
+
+    print(train_accuracy)
+    print(test_accuracy)
+    return train_accuracy, test_accuracy
+#应用逻辑回归模型，将数据分为10份，每次取一个样本作为验证数据，剩下k-1个样本作为训练数据
+train_acc,test_acc = CVKFold(10,all_x,y,"Logit")
+#验证训练数据和测试数据的精确度
+np.mean(train_acc),np.mean(test_acc)
+#应用随机森林模型，将数据分为10份，每次取一个样本作为验证数据，剩下k-1个样本作为训练数据
+train_acc,test_acc = CVKFold(10,all_x,y,"RForest")
