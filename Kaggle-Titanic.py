@@ -234,16 +234,16 @@ np.mean(y_pred_test == yTest)
 np.mean(y_pred_train == yTrain)
 #对每一个模型，分别测试训练集和测试集的精确度
 for model in models:
-    print ('\nThe current model is', model)
+    #print ('\nThe current model is', model)
     model.fit(xTrain, yTrain)
-    print ('\nTraining accuracy is',np.mean(model.predict(xTrain) == yTrain))
-    print ('\nTesting accuracy is',np.mean(model.predict(xTest) == yTest))
+    #print ('\nTraining accuracy is',np.mean(model.predict(xTrain) == yTrain))
+    #print ('\nTesting accuracy is',np.mean(model.predict(xTest) == yTest))
 #对第二组数据进行相同的操作，每一个模型，分别测试训练集和测试集的精确度
 for model in models:
-    print ('\nThe current model is', model)
+    #rint ('\nThe current model is', model)
     model.fit(x2Train, y2Train)
-    print ('\nTraining accuracy is',np.mean(model.predict(x2Train) == y2Train))
-    print ('\nTesting accuracy is',np.mean(model.predict(x2Test) == y2Test))
+    #print ('\nTraining accuracy is',np.mean(model.predict(x2Train) == y2Train))
+    #print ('\nTesting accuracy is',np.mean(model.predict(x2Test) == y2Test))
 
 #交叉验证是机器学习领域常用的验证模型是否优秀的方法；简而言之就是把数据切分成几个部分然后在训练集和测试集中交换使用
 #比如这次在训练集中用到的数据，下一次会放进测试集来使用，因此被称为 交叉
@@ -293,8 +293,8 @@ def CVKFold(k, X, y, Model):
         test_accuracy[idx] = np.mean(y_test_pred == y_test)
         idx += 1
 
-    print(train_accuracy)
-    print(test_accuracy)
+    #print(train_accuracy)
+    #print(test_accuracy)
     return train_accuracy, test_accuracy
 #应用逻辑回归模型，将数据分为10份，每次取一个样本作为验证数据，剩下k-1个样本作为训练数据
 train_acc,test_acc = CVKFold(10,all_x,y,"Logit")
@@ -302,3 +302,112 @@ train_acc,test_acc = CVKFold(10,all_x,y,"Logit")
 np.mean(train_acc),np.mean(test_acc)
 #应用随机森林模型，将数据分为10份，每次取一个样本作为验证数据，剩下k-1个样本作为训练数据
 train_acc,test_acc = CVKFold(10,all_x,y,"RForest")
+
+
+
+###### 第五堂课 ######
+
+#查看数据信息
+xTrain.head()
+xTrain.shape
+#分别创建名为logr，dtree，rf的逻辑回归，决策树和随机森林对象
+logr = LogisticRegression()
+dtree = DecisionTreeClassifier()
+rf = RandomForestClassifier()
+#调用LogisticRegression的fit方法对数据集进行拟合，C为正则化系数λ的倒数，通常默认为1，class_weight参数用于标示分类模型中各种类型的权重，
+#dual：一个布尔值，如果为true，则求解对偶形式（只在penalty=‘l2’且solver=‘lib-linear’有对偶形式），如果为false，则求解原始形式，
+#默认为false；fit_intercept，是否存在截距，默认存在；intercept_scaling:一个浮点数，只有当solver='liblinear'才有意义。当采用
+#fit_intcept时相当于人造一个特征出来，特征恒为1，权重为b。在计算正则化项的时候，该人造特征也被考虑了，因此为了降低这个人造特征的影响，
+#需要提供intercept_scaling；max_iter:一个整数，指定最大迭代次数；multi_class:一个字符串，指定对于多分类问题的策略，可以为如下值，
+#ovr:采用one-vs-rest策略；multinomial:直接采用多分类逻辑回归策略。n_jobs：一个正数。指定任务并行时的cpu数量。如果为-1则使用所有可用的CPU。
+#random_state:一个整数或者一个RandomState实例或者none。
+#如果为整数，则它指定了随机数生成器的种子，如果为RandomState实例，则指定了随机数生成器。如果为none则使用默认是随机数生成器。
+#solver:一个字符串，指定了求解最优化问题的算法，可以为如下值：newton-cg:使用牛顿法；lbfgs:使用L-BFGS拟牛顿法；
+#liblinear:使用liblinear;sag:使用stochastic average gradient descent算法。注：对于规模小的数据集，liblinear比较适用，对于规模大的数据集，
+#sag比较适用，而newton-cg,lbfgs、sag只处理penalty='l2'的情况。tol:一个浮点数，指定判断迭代收敛与否的阈值。
+#verbose:一个正数。用于开启/关闭迭代中间输出日志功能。warm_start:一个布尔值，如果为true，那么使用前一次训练结果继续训练，否则从头开始训练。
+logr.fit(xTrain,yTrain)
+#查看拟合后logistic regression模型的intercept值
+logr.intercept_
+#查看拟合后logistic regression模型的coef值
+logr.coef_
+#打开名为“logrformular.png“的图像
+'''
+img=Image.open('logrformular.png')
+plt.figure('logrformular')
+plt.imshow(img)
+plt.show()
+'''
+#载入graphviz数据包，以及从sklearn中载入tree数据包：graphviz是AT&T实验室开源的画图工具，
+import graphviz
+from sklearn import tree
+#创建名为dtree的决策树对象
+dtree = DecisionTreeClassifier()
+#调用DecisionTree的fit方法对数据集进行拟合
+#class_weight:dict,list of dicts,"Banlanced" or None,可选（默认为None）
+#criterion:string类型，可选（默认为"gini"）衡量分类的质量。支持的标准有："gini"代表的是Gini impurity(不纯度)；
+#"entropy"代表的是information gain（信息增益）。
+#max_depth:int or None,可选（默认为"None"）表示树的最大深度。如果是"None",则节点会一直扩展直到所有的叶子都是纯的或者所有的叶子节点都包含
+#少于min_samples_split个样本点。忽视max_leaf_nodes是不是为None。
+#max_features:int,float,string or None 可选（默认为None），在进行分类时需要考虑的特征数。None，max_features=n_features 注意：至少找到一个
+#样本点有效的被分类时，搜索分类才会停止。
+#max_leaf_nodes:int,None 可选（默认为None）在最优方法中使用max_leaf_nodes构建一个树。最好的节点是在杂质相对减少。
+#如果是None则对叶节点的数目没有限制。如果不是None则不考虑max_depth.
+#min_impurity_decrease : float, optional (default=0.)如果该分裂导致杂质的减少大于或等于该值，则将分裂节点。
+#min_samples_leaf:int,float,可选（默认为1）一个叶节点所需要的最小样本数。
+#min_samples_split:int,float,可选（默认为2）区分一个内部节点需要的最少的样本数。
+#min_weight_fraction_leaf:float,可选（默认为0）一个叶节点的输入样本所需要的最小的加权分数。
+#persort:bool,可选（默认为False）是否预分类数据以加速训练时最好分类的查找。在有大数据集的决策树中，如果设为true可能会减慢训练的过程。
+#当使用一个小数据集或者一个深度受限的决策树中，可以减速训练的过程。
+#random_state:int,RandomState instance or None；如果是None，随机数字发生器是np.random使用的RandomState instance.
+#splitter:string类型，可选（默认为"best"） 一种用来在节点中选择分类的策略。支持的策略有"best"，选择最好的分类，"random"选择最好的随机分类。
+dtree.fit(xTrain,yTrain)
+#利用tree的export_graphviz以DOT形式提取决策树
+dot_data = tree.export_graphviz(dtree, out_file=None,feature_names=xTrain.columns,filled=True, rounded=True)
+#将DOT形式的决策树源码字符串形式
+graph = graphviz.Source(dot_data)
+#用pdf存储源码
+graph.render('dtree')
+#创建名为rf_10的随机森林对象，森林里决策树的数目为10
+rf_10 = RandomForestClassifier(n_estimators=10)
+#调用RandomForestClassifier的fit方法对数据集进行拟合
+#bootstrap=True：是否有放回的采样。
+#max_features: 选择最适属性时划分的特征不能超过此值。当为整数时，即最大特征数；当为小数时，训练集特征数*小数；
+#if “auto”, then max_features=sqrt(n_features).
+#n_estimators=10：决策树的个数，越多越好，但是性能就会越差，至少100左右
+#n_jobs=1：并行job个数。这个在ensemble算法中非常重要，尤其是bagging（而非boosting，因为boosting的每次迭代之间有影响，所以很难进行并行化），
+#因为可以并行从而提高性能。1=不并行；n：n个并行；-1：CPU有多少core，就启动多少job。
+#oob_score=False：oob（out of band，带外）数据，即：在某次决策树训练中没有被bootstrap选中的数据。
+#verbose:(default=0) 是否显示任务进程
+#warm_start=False：热启动，决定是否使用上次调用该类的结果然后增加新的。
+rf_10.fit(xTrain,yTrain)
+#查看刚才创建的决策树中的第五棵树
+rf_5 = rf_10.estimators_[5]
+#利用tree的export_graphviz以DOT形式提取决策树
+dot_data = tree.export_graphviz(rf_5, out_file=None,feature_names=xTrain.columns,filled=True, rounded=True)
+#将DOT形式的决策树源码字符串形式
+graph = graphviz.Source(dot_data)
+#用pdf存储源码
+graph.render('rftree')
+#无论在机器学习还是深度学习建模当中都可能会遇到两种最常见结果，一种叫过拟合（over-fitting ）另外一种叫欠拟合（under-fitting）。
+#所谓过拟合（over-fitting）其实就是所建的机器学习模型或者是深度学习模型在训练样本中表现得过于优越，导致在验证数据集以及测试数据集中表现不佳。
+#过拟合就是学到了很多没必要的特征。
+#导入图像，诠释什么是过度拟合
+'''
+img=Image.open('overfit.png')
+plt.figure('overfit')
+plt.imshow(img)
+plt.show()
+'''
+#利用decisiontree的predict预测测试集和训练集
+y_pred_train = dtree.predict(xTrain)
+y_pred_test = dtree.predict(xTest)
+#利用numpy数据包的mean取平均，评估预测的精确度
+np.mean(y_pred_train == yTrain),np.mean(y_pred_test == yTest)
+#创建名为dtree2的决策树对象，规定树的最大深度为5，构成一个内部节点的样本最少为5个
+dtree2 = DecisionTreeClassifier(max_depth=5,min_samples_split=5)
+#利用DecisionTreeClassifier的fit方法拟合xy训练集
+dtree2.fit(xTrain,yTrain)
+#利用numpy数据包的mean取平均，评估预测的精确度
+np.mean(dtree2.predict(xTrain) == yTrain),np.mean(dtree2.predict(xTest) == yTest)
+print(np.mean(dtree2.predict(xTrain) == yTrain),np.mean(dtree2.predict(xTest) == yTest))
