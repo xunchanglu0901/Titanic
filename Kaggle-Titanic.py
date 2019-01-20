@@ -410,4 +410,95 @@ dtree2 = DecisionTreeClassifier(max_depth=5,min_samples_split=5)
 dtree2.fit(xTrain,yTrain)
 #利用numpy数据包的mean取平均，评估预测的精确度
 np.mean(dtree2.predict(xTrain) == yTrain),np.mean(dtree2.predict(xTest) == yTest)
-print(np.mean(dtree2.predict(xTrain) == yTrain),np.mean(dtree2.predict(xTest) == yTest))
+#print(np.mean(dtree2.predict(xTrain) == yTrain),np.mean(dtree2.predict(xTest) == yTest))
+
+
+
+###### 第六堂课 ######
+
+# 从sklearn.model_selection中引入RanomizedSearchCV,GridSearchCV
+# GriSearchCV：网格搜索交叉验证，遍历整个系统，在指定范围内按照一定的步长来调整参数，并且按照这些调整后的参数来重新训练学习器，
+# 从而找到使得验证精度达到最高的参数
+# RandomizedSearchCV：不同于GridSearchCV,RandomizedSearchCV则是随机搜索交叉验证，它在参数空间中随机采样，
+# RandomizedSearchCV在对参数采样时更加独立，并且添加参数时不会降低效率，推荐使用RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV,GridSearchCV
+# 此处创建一个名为param_grid的字典，将参数名称作为字典的key，将参数的值作为字典的value，供后续调参使用
+# 此处参数的意义见第五节课讲义
+param_grid = {
+    'max_depth': [7,10,13,15,17],
+    'max_features': [5,7,10],
+    'min_samples_split': [2,5,10],
+    'n_estimators': [10,20,50]
+}
+# 创建一个名为rf的随机森林分类器对象
+rf = RandomForestClassifier()
+# RandomizedSearchCV(estimator, param_distributions, n_iter=10, scoring=None, fit_params=None, n_jobs=None, iid=’warn’, refit=True, cv=’warn’, verbose=0, pre_dispatch=‘2*n_jobs’, random_state=None, error_score=’raise-deprecating’, return_train_score=’warn’)
+# 创建一个名为rf_random的RandomizedSearchCV对象，用来调整rf的参数，可以取样的参数的分布为param_grid中的参数，取样次数为50次，并且采用三折验证
+rf_random = RandomizedSearchCV(estimator = rf, param_distributions = param_grid,n_iter=50,
+                          cv = 3,)
+# 调用RandomizedSearchCV的fit方法拟合数据集
+rf_random.fit(xTrain,yTrain)
+# GridSearchCV(estimator, param_grid, scoring=None, fit_params=None, n_jobs=None, iid=’warn’, refit=True, cv=’warn’, verbose=0, pre_dispatch=‘2*n_jobs’, error_score=’raise-deprecating’, return_train_score=’warn’)
+
+# 常用参数：
+# estimator:需要调参的学习器对象，如此处为随机森林
+# param_distributions:参数的分布情况，如上面定义的param_grid定义了最大深度、最大特征数等等
+# n_iter:取样的次数
+# scoring:准确度评价标准，默认为None
+# cv:交叉验证参数，默认为None,使用三折验证，在sklearn0.22中默认为五折验证，此处我们使用三折验证
+# refit :默认为True,程序将会以交叉验证训练集得到的最佳参数，重新对所有可用的训练集与开发集进行，作为最终用于性能评估的最佳模型参数。即在搜索参数结束后，用最佳参数结果再次fit一遍全部数据集。
+# 创建一个名为rf_grid的GridSearchCV对象，用来调整rf的参数，可以取样的参数的网格为param_grid中的参数，并且采用三折验证
+rf_grid = GridSearchCV(estimator = rf, param_grid = param_grid,
+                          cv = 3,)
+# 利用GridSearchCV中的fit方法拟合数据集
+rf_grid.fit(xTrain,yTrain)
+# 查看随机搜索得到的最优的学习器的参数
+rf_random.best_estimator_
+# 查看网格搜索得到的最优的学习器的参数
+rf_grid.best_estimator_
+# 通过随机搜索交叉验证得到的最佳学习器参数的平均正确率
+rf_random.best_score_
+# 通过网格搜索交叉验证得到的最佳学习器参数的平均正确率
+rf_grid.best_score_
+# 从sklearn.metrics中引入confusion_matrix
+# confusion_matrix名为混淆矩阵，常用来评估分类的准确度，分为四类结果：True positive, false negative, false positive, true negative;
+# 混淆矩阵四类结果如果大家感到非常模糊，可以百度搜索一下示例，结合具体例子看还是很容易理解的啦；
+# confusion_matrix每一行的和为该类样本的真实数量
+# confusion_matrix每一列的和为预测为该类样本的数量
+from sklearn.metrics import confusion_matrix
+# 将测试集的预测结果存放到y_pred中
+y_pred = rf_grid.predict(xTest)
+# 利用将测试集的标签和测试结果构建测试矩阵
+# confusion_matrix[0,0]表示实际为0，预测也为0的结果个数
+# confusion_matrix[0,1]表示实际为0，预测为1的个数
+confusion_matrix(yTest,y_pred)
+# 计算测试集的标签的平均数和测试集总数的乘积，np.mean(yTest)输出值为0.3854748603351955
+np.mean(yTest)*len(yTest)
+# 打开confusion1.png
+# 可以看到左上角为实际为1预测也为1的结果数
+# 左下角为实际是为0但是预测为1的结果数
+'''
+#Image(filename='confusion1.png')
+img=Image.open('confusion1.png')
+plt.figure('confusion1')
+plt.imshow(img)
+plt.show()
+'''
+# 打开confusion2.png
+# 与confusion1相反，此处实际值为列，预测值为行
+# 所以此处左下角为实际为0但是预测为1的结果数
+'''
+#Image(filename='confusion2.png')
+img=Image.open('confusion2.png')
+plt.figure('confusion2')
+plt.imshow(img)
+plt.show()
+'''
+
+
+
+###### 第七堂课 ######
+
+'''
+讲义
+'''
